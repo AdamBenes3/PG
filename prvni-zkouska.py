@@ -1,2 +1,1 @@
 print("ahoj")
-print("llll")
