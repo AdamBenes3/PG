@@ -1,0 +1,98 @@
+from random import choice
+from turtle import *
+from freegames import vector, floor, square
+
+pawns = []
+whichFigure = None
+width = 800
+height = 800
+for i in range(16):
+    pawns.append(vector(-height/2 + i*height/8,height/2 - i*height/8))
+moving = False
+
+tiles = []
+for count in range(20*20):
+    tiles.append(1)
+path = Turtle(visible=False)
+
+def fill():
+    for count in range(20*20):
+        tiles.append(1)
+
+def pyramid():
+    tiles.clear()
+    for index in range(400):
+        x, y = getCornetoIndex(index)
+        if x+y>=20 and y>=x:
+            tiles.append(1)
+        else:
+            tiles.append(0)
+
+def chessboard():
+    global height, width
+    tiles.clear()
+    for x in range(8):
+        row = []
+        for y in range(8):
+            if (x + y) % 2 == 0:
+                row.append("red")
+            else:
+                row.append("blue")
+        tiles.append(row)
+
+def getCornetoIndex(index):
+    x = index%20
+    y = floor(index, 20)/20
+    return x, y
+
+def leftCorneto():
+    tiles.clear()
+    for index in range(20 * 20):
+        x, y = getCornetoIndex(index)
+        print(x)
+        print(y)
+        if x + y <= 20:
+            tiles.append(1)
+        else:
+            tiles.append(0)
+
+def draw():
+    global width, height
+    size = width/8
+    for x in range(len(tiles)):
+        for y in range(len(tiles[0])):
+            square(x*size-width/2,height/2 - y*size - size, size,tiles[x][y])
+            
+def move(x,y):
+    global moving, pawns, width, whichFigure
+    size = width/8
+    if moving:
+        pawn = vector(floor(x, size), floor(y, size))
+        xx = int((width/2 + pawn.x)/size)
+        yy = int(-(pawn.y - height/2 + size) / size)
+        square(xx*size-width/2,height/2 - yy*size - size, size,tiles[xx][yy])
+        pawns.remove(whichFigure)
+        print(whichFigure)
+        pawns.append(pawn)
+        moving = False
+        drawPawns()
+    elif vector(floor(x, size), floor(y, size)) in pawns:
+        whichFigure = vector(floor(x, size), floor(y, size))
+        moving = True
+        
+        
+def drawPawns():
+    global moving, pawns, height
+    for i in range(16):
+        square(pawns[i].x,pawns[i].y,height/8,'black')
+    
+setup(width, height, 370, 100)
+tracer(False)
+chessboard()
+listen()
+onscreenclick(lambda x,y: move(x,y),1)
+print(pawns)
+draw()
+drawPawns()
+
+done()
