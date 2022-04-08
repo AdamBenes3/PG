@@ -28,6 +28,7 @@ def pyramid():
         else:
             tiles.append(0)
 
+
 def chessboard():
     global height, width
     tiles.clear()
