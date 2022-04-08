@@ -19,7 +19,7 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
-------------------------------
+
 pawnBlack=[]
 pawnWhite=[]
 sizeBtn = 100
