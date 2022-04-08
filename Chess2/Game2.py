@@ -1,4 +1,5 @@
 from cProfile import label
+from ctypes import sizeof
 from curses import panel
 from sqlite3 import Row
 from kivy.app import App
@@ -19,14 +20,33 @@ from kivy.uix.anchorlayout import AnchorLayout
 from kivy.uix.label import Label
 from kivy.uix.relativelayout import RelativeLayout
 
+pawnBlack=[]
+pawnWhite=[]
+sizeBtn = 100
+whichPawn = 0
+for i in range(8):
+    pawnBlack.append(0)
+    pawnBlack[i] = Button(text='', size_hint=(None, None), font_size=40)
+    pawnBlack[i].disabled = True
+    pawnBlack[i].top = 200
+    pawnBlack[i].x =  sizeBtn * (i)
+    pawnBlack[i].background_color=(0.3,0.3,0.3,10)
+    pawnBlack[i].size = [100,100]
+for i in range(8):
+    pawnWhite.append(0)
+    pawnWhite[i] = Button(text='', size_hint=(None, None), font_size=40)
+    pawnWhite[i].disabled = True
+    pawnWhite[i].top = 700
+    pawnWhite[i].x =  sizeBtn * (i)
+    pawnWhite[i].background_color=(2,2,2,10)
+    pawnWhite[i].size = [100,100]
+    
 class TicTacToe(App):
     def build(self):
+        #for i in range(8):
+        #    pawnBlack[i].bind(on_press=self.movePawnBlack)
+        #    whichPawn = i
         gr = RelativeLayout(size = (200,200))
-        test = Button(text='', size_hint=(None, None), font_size=40)
-        test.top = 100
-        test.x=0
-        test.background_color=(200,200,200,1)
-        test.size = [100,100]
         gr.cols = 8
         gr.rows = 8
         gr.spacing = 10
@@ -45,14 +65,17 @@ class TicTacToe(App):
                 else:
                     btn.background_color = (0,200,200,1)
                 btn.height = btn.width = 100
-                btn.bind(on_press=self.button_press)
                 gr.add_widget(btn)
                 row.append(btn)
             btns.append(row)
-        btns[2][1].color = [1, 1, 0, 0]
-        gr.add_widget(test)
+        for i in range(8):
+            gr.add_widget(pawnBlack[i])
+        for i in range(8):
+            gr.add_widget(pawnWhite[i])
+        #pawnBlack.x=200
+        
         return gr
-    def button_press(self, instance):
-        pass
+    
+
 
 TicTacToe().run()
