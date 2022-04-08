@@ -9,35 +9,14 @@ height = 800
 
 figuresRed = []
 figuresBlue = []
+figureDrawer = Turtle(visible=False)
+moving = None
+redOnmove = False
 
 def getCornetoIndex(index):
     x = index%8
     y = floor(index, 8)/8
     return x, y
-
-def move(figure, x, y):
-    global figuresRed, figuresBlue
-    if figure in figuresRed:
-        figuresRed.remove(figure)
-    elif figure in figuresBlue:
-        figuresBlue.remove(figure)
-    figure.move(x,y)
-    if figure in figuresRed:
-        figuresRed.append(figure)
-    elif figure in figuresBlue:
-        figuresBlue.append(figure)
-        
-def check(figure, x, y):
-    global figuresRed, figuresBlue
-    if figure in figuresRed:
-        figuresRed.remove(figure)
-    elif figure in figuresBlue:
-        figuresBlue.remove(figure)
-    figure.move(x,y)
-    if figure in figuresRed:
-        figuresRed.append(figure)
-    elif figure in figuresBlue:
-        figuresBlue.append(figure)
 
 
 def deployment():
@@ -46,21 +25,92 @@ def deployment():
     for x in range(len(tiles)):
         for y in range(len(tiles[0])):
             if tiles[x][y] == "black" and y<3:
-                drawFigure(x,y,"red")
                 figuresRed.append(vector(x,y))
             elif tiles[x][y] == "black" and y>4:
-                drawFigure(x,y,"blue")
                 figuresBlue.append(vector(x,y))
+    drawFigures()
 
-def drawFigure(x,y,color):
+def drawFigures():
     size = width/8
-    penup()
-    goto(x*size-width/2 + size/2,height/2 - y*size - size)
-    pendown()
-    begin_fill()
-    fillcolor(color)
-    circle(size/2)
-    end_fill()
+    figureDrawer.clear()
+    for fig in figuresRed:
+        figureDrawer.penup()
+        figureDrawer.goto(fig.x*size-width/2 + size/2,height/2 - fig.y*size - size)
+        figureDrawer.pendown()
+        figureDrawer.begin_fill()
+        figureDrawer.fillcolor("red")
+        figureDrawer.circle(size/2)
+        figureDrawer.end_fill()
+    for fig in figuresBlue:
+        figureDrawer.penup()
+        figureDrawer.goto(fig.x*size-width/2 + size/2,height/2 - fig.y*size - size)
+        figureDrawer.pendown()
+        figureDrawer.begin_fill()
+        figureDrawer.fillcolor("blue")
+        figureDrawer.circle(size/2)
+        figureDrawer.end_fill()
+    if moving != None:
+        figureDrawer.penup()
+        figureDrawer.goto(moving.x*size-width/2 + size/2,height/2 - moving.y*size - size)
+        figureDrawer.pendown()
+        figureDrawer.begin_fill()
+        figureDrawer.fillcolor("pink")
+        figureDrawer.circle(size/2)
+        figureDrawer.end_fill()        
+       
+def click(x,y):
+    global moving, redOnmove
+    x = floor(x + width/2, width/8) / (width/8)
+    y = floor(height/2 - y, height/8) / (width/8)
+    if moving == None:
+        if redOnmove:
+            if vector(x,y) in figuresRed:
+                moving = vector(x,y)
+        else:
+            if vector(x,y) in figuresBlue:
+                moving = vector(x,y)
+    else:
+        if moving == vector(x,y):
+            moving = None
+        elif isPlayabel(moving, vector(x,y)):
+            if redOnmove:
+                figuresRed.remove(moving)
+                figuresRed.append(vector(x,y))
+            else:
+                figuresBlue.remove(moving)
+                figuresBlue.append(vector(x,y))
+            moving = None
+            redOnmove = not redOnmove
+    drawFigures()
+
+def isPlayabel(moving, target):
+    global redOnmove
+    if not isEmpty(target):
+        return False
+    print(moving, target, redOnmove)
+    if target.x>7 or target.x<0 or target.y>7 or target.y<0:
+        return False
+    if redOnmove:
+        if target.y -1 != moving.y:
+            return False
+        if target.x-1 != moving.x and target.x+1 != moving.x:
+            return False
+    else:
+        if target.y+1 != moving.y:
+            return False
+        if target.x-1 != moving.x and target.x+1 != moving.x:
+            return False
+    return True
+        
+
+def isEmpty(target):
+    print(figuresRed, figuresBlue)
+    if target in figuresRed or target in figuresBlue:
+        print("not empty")
+        return False
+    else:
+        return True
+
 
 def chessboard():
     global height, width
@@ -74,7 +124,7 @@ def chessboard():
                 row.append("black")
         tiles.append(row)
 
-def draw():
+def drawChessboard():
     global width, height
     size = width/8
     for x in range(len(tiles)):
@@ -86,9 +136,9 @@ setup(width, height, 370, 100)
 tracer(False)
 chessboard()
 listen()
-draw()
+onscreenclick(lambda x,y: click(x,y),1)
+drawChessboard()
 deployment()
-drawPawns()
 
 
 done()
