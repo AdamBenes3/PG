@@ -2,6 +2,7 @@ from random import choice
 from tkinter import MOVETO
 from turtle import *
 from freegames import vector, floor, square
+from requests import options
 
 tiles = []
 width = 800
@@ -12,6 +13,7 @@ figuresBlue = []
 figureDrawer = Turtle(visible=False)
 moving = None
 redOnmove = False
+options = []
 
 def getCornetoIndex(index):
     x = index%8
@@ -54,21 +56,31 @@ def drawFigures():
         figureDrawer.goto(moving.x*size-width/2 + size/2,height/2 - moving.y*size - size)
         figureDrawer.pendown()
         figureDrawer.begin_fill()
-        figureDrawer.fillcolor("pink")
+        figureDrawer.fillcolor("grey")
         figureDrawer.circle(size/2)
-        figureDrawer.end_fill()        
+        figureDrawer.end_fill()   
+    for option in options:
+        figureDrawer.penup()
+        figureDrawer.goto(option.x*size-width/2 + size/2,height/2 - option.y*size - size)
+        figureDrawer.pendown()
+        figureDrawer.begin_fill()
+        figureDrawer.fillcolor("white")
+        figureDrawer.circle(size/2)
+        figureDrawer.end_fill()      
        
 def click(x,y):
-    global moving, redOnmove
+    global moving, redOnmove, options
     x = floor(x + width/2, width/8) / (width/8)
     y = floor(height/2 - y, height/8) / (width/8)
     if moving == None:
         if redOnmove:
             if vector(x,y) in figuresRed:
                 moving = vector(x,y)
+                createOptions(moving)
         else:
             if vector(x,y) in figuresBlue:
                 moving = vector(x,y)
+                createOptions(moving)
     else:
         if moving == vector(x,y):
             moving = None
@@ -76,37 +88,77 @@ def click(x,y):
             if redOnmove:
                 figuresRed.remove(moving)
                 figuresRed.append(vector(x,y))
+                #last = moving
+                #for row in range(moving.y+1,y,2):
+                #    pass
             else:
                 figuresBlue.remove(moving)
                 figuresBlue.append(vector(x,y))
             moving = None
             redOnmove = not redOnmove
+        options = []
     drawFigures()
-
-def isPlayabel(moving, target):
-    global redOnmove
-    if not isEmpty(target):
-        return False
-    print(moving, target, redOnmove)
-    if target.x>7 or target.x<0 or target.y>7 or target.y<0:
-        return False
-    if redOnmove:
-        if target.y -1 != moving.y:
-            return False
-        if target.x-1 != moving.x and target.x+1 != moving.x:
-            return False
+def createOptions(moving):
+    global options, redOnmove
+    options = []
+    jumpOptions = []
+    if(not redOnmove):
+        if isEmpty(vector(moving.x + 1, moving.y - 1)):
+            options.append(vector(moving.x + 1, moving.y - 1))
+        if isEmpty(vector(moving.x - 1, moving.y - 1)):
+            options.append(vector(moving.x - 1, moving.y - 1))
+        jumpOptions = canJump(moving)
+        while len(jumpOptions) > 0:
+            help = []
+            for jump in jumpOptions:
+                options.append(jump)
+                for jump2 in canJump(jump):
+                    help.append(jump2)
+            jumpOptions = help
     else:
-        if target.y+1 != moving.y:
-            return False
-        if target.x-1 != moving.x and target.x+1 != moving.x:
-            return False
-    return True
-        
+        if isEmpty(vector(moving.x + 1, moving.y + 1)):
+            options.append(vector(moving.x + 1, moving.y + 1))
+        if isEmpty(vector(moving.x - 1, moving.y + 1)):
+            options.append(vector(moving.x - 1, moving.y + 1))
+        jumpOptions = canJump(moving)
+        while len(jumpOptions) > 0:
+            help = []
+            for jump in jumpOptions:
+                options.append(jump)
+                for jump2 in canJump(jump):
+                    help.append(jump2)
+            jumpOptions = help
+    
+def isPlayabel(moving, target):
+    global redOnmove, options
+    return target in options
+
+def canJump(moving):
+    global redOnMove
+    jumpOptions = []
+    if(not redOnmove):
+        if isEmpty(vector(moving.x + 2, moving.y - 2)) and vector(moving.x + 1, moving.y - 1) in figuresRed:
+            jumpOptions.append(vector(moving.x + 2, moving.y - 2))
+        if isEmpty(vector(moving.x - 2, moving.y - 2)) and vector(moving.x - 1, moving.y - 1) in figuresRed:
+            jumpOptions.append(vector(moving.x - 2, moving.y - 2))
+    else:
+        if isEmpty(vector(moving.x + 2, moving.y + 2)) and vector(moving.x + 1, moving.y + 1) in figuresBlue:
+            jumpOptions.append(vector(moving.x + 2, moving.y + 2))
+        if isEmpty(vector(moving.x - 2, moving.y + 2)) and vector(moving.x - 1, moving.y + 1) in figuresBlue:
+            jumpOptions.append(vector(moving.x - 2, moving.y + 2))
+    return jumpOptions
+
+def removeFigure(x, y):
+    if(vector(x, y)) in figuresBlue:
+        figuresBlue.remove(vector(x, y))
+    elif(vector(x, y)) in figuresRed:
+        figuresRed.remove(vector(x, y))
+    drawFigures
 
 def isEmpty(target):
-    print(figuresRed, figuresBlue)
+    if target.x < 0 or target.y < 0 or target.x > 7 or target.y > 7:
+        return False
     if target in figuresRed or target in figuresBlue:
-        print("not empty")
         return False
     else:
         return True
